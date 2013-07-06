@@ -5,6 +5,20 @@ var client = require('engine.io-client');
 var eio = client('ws://localhost:8080');
 var io = reconnect(eio);
 
-var io.on('reconnect', function(attempts) {
+
+io.on('reconnect', function(attempts) {
   console.log('Reconnected after %d attempts', attempts);
 });
+
+io.on('reconnecting', function(attempts) {
+  console.log('Trying to reconnect after %d attempts', attempts);
+});
+
+io.on('reconnect_error', function(error) {
+  console.log('Error trying to reconnect', error);
+});
+
+io.on('reconnect_timeout', function(timeout) {
+  console.log('Timeout after %dms', timeout);
+});
+
