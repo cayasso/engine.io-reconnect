@@ -3,12 +3,8 @@ var client = require('engine.io-client');
 
 // Add room functionality to io
 var eio = client('ws://localhost:8080');
-var io = reconnect(eio, { /*reconnection: true*/ });
+var io = reconnect(eio);
 
-io.on('close', function () {
-  console.log('closing connection');
+var io.on('reconnect', function(attempts) {
+  console.log('Reconnected after %d attempts', attempts);
 });
-
-setTimeout(function () {
-  io.close();  
-}, 50);
