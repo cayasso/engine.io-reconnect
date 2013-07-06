@@ -374,7 +374,7 @@ require.register("engine.io-reconnect/lib/index.js", function(exports, require, 
  * Module dependencies.
  */
 
-var debug('debug')('engine.io-reconnect');
+var debug = require('debug')('engine.io-reconnect');
 
 // Get bind component for node and browser.
 var bind;
@@ -417,6 +417,8 @@ function Reconnect(io, opts) {
 
   // bind events
   this.bind();
+  this.connected = false;
+  this.times = 0;
 
   // lets return the socket object
   return this.io;
@@ -447,49 +449,10 @@ Reconnect.prototype.bind = function () {
   this.io.reconnectionAttempts = bind(this, 'attempts');
 
   // caching event functions
-  this.onopen = bind(this, 'onopen');
   this.onclose = bind(this, 'onclose');
-  this.onerror = bind(this, 'onerror');
 
   // doing the actuall bind
   this.io.on('close', this.onclose);
-  this.io.on('open', this.onopen);
-  this.io.on('error', this.onerror);
-};
-
-/**
- * Attempt to re-open `socket` connection.
- *
- * @return {Reconnect} self
- * @api private
- */
-
-Reconnect.prototype.open = function () {
-  this.io.open();
-  if (false !== this._timeout && !this.timeoutTimer) {
-    debug('connect attempt will timeout after %d', this._timeout);
-    this.timeoutTimer = setTimeout(bind(this, function () {
-      debug('connect attempt timed out after %d', this._timeout);
-      this.close();
-      this.clear();
-      this.io.emit('reconnect_timeout', timeout);
-    }), this._timeout);
-  }
-  return this;
-};
-
-/**
- * Called upon engine open event.
- *
- * @api private
- */
-
-Reconnect.prototype.onopen = function () {
-  if (this.reconnecting) {
-    debug('reconnect success');
-    this.onreconnect();
-  }
-  return this;
 };
 
 /**
@@ -510,11 +473,14 @@ Reconnect.prototype.close = function () {
  * @api private
  */
 
-Reconnect.prototype.onclose = function () {
+Reconnect.prototype.onclose = function (reason, desc) {
+  //this.check();
+  this.connected = false;
   if (!this.skip && this._reconnection) {
     this.reconnect();
+  } else {
+    this.clear();
   }
-  return this;
 };
 
 /**
@@ -541,8 +507,10 @@ Reconnect.prototype.onerror = function (error) {
 Reconnect.prototype.clear = function () {
   clearTimeout(this.reconnectTimer);
   clearTimeout(this.timeoutTimer);
+  clearTimeout(this.checkTimer);
   this.reconnectTimer = null;
   this.timeoutTimer = null;
+  this.checkTimer = null;
   return this;
 };
 
@@ -616,28 +584,71 @@ Reconnect.prototype.timeout = function (v) {
 };
 
 /**
+ * Attempt to re-open `socket` connection.
+ *
+ * @return {Reconnect} self
+ * @api private
+ */
+
+Reconnect.prototype.open = function(fn) {
+  this.io.open();
+  this.on('open', fn);
+  this.on('error', fn);
+
+  if (false !== this._timeout && !this.timeoutTimer) {
+    debug('connect attempt will timeout after %d', this._timeout);
+    this.timeoutTimer = setTimeout(bind(this, function () {
+      debug('connect attempt timed out after %d', this._timeout);
+      this.close();
+      this.clear();
+      this.io.emit('reconnect_timeout', this._timeout);
+    }), this._timeout);
+  }
+};
+
+/*Reconnect.prototype.check = function check() {
+  console.log('ATTEMPTS', this.times);
+  this.times++;
+  if (this.times >= 10) {
+    console.log('======== WARNING WARNING STOP STOP PLEASE=========');
+    this.checkTimer = setTimeout(bind(this, function(){
+      this.close();
+      this.clear();
+      this.connected = false;
+      this.times = 0;
+    }), 0);
+  }
+};*/
+
+/**
  * Attempt a reconnection.
  *
  * @api private
  */
 
-Reconnect.prototype.reconnect = function () {
+Reconnect.prototype.reconnect = function (){
   this.attempt++;
-  if (this.attempt > this._attempts) {
-    this.reconnecting = false;
+  this.io.emit('reconnecting', this.attempt);
+  if (this.attempt > this.attempts()) {
     this.io.emit('reconnect_failed');
+    this.reconnecting = false;
   } else {
     var delay = this.attempt * this.delay();
-    delay = Math.min(delay, this.delayMax());
     debug('will wait %dms before reconnect attempt', delay);
-    this.reconnecting = true;
-    this.reconnectTimer = setTimeout(bind(this, function(){
+    this.reconnectTimer = setTimeout(bind(this, function() {
       debug('attemptign reconnect');
-      clearTimeout(this.reconnectTimer);
-      this.open();
+      this.open(bind(this, function(err){
+        if (err) {
+          debug('reconnect attempt error');
+          this.reconnect();
+          this.io.emit('reconnect_error', err);
+        } else {
+          debug('reconnect success');
+          this.onreconnect();
+        }
+      }));
     }), delay);
   }
-  return this;
 };
 
 /**
@@ -650,8 +661,20 @@ Reconnect.prototype.onreconnect = function () {
   var attempt = this.attempt;
   this.attempt = 0;
   this.reconnecting = false;
-  this.clear();
+  this.connected = true;
   this.io.emit('reconnect', attempt);
+  return this;
+};
+
+/**
+ * Little helper for binding events.
+ *
+ * @api private
+ */
+
+Reconnect.prototype.on = function (ev, fn) {
+  this.io.off(ev, this['_'+ev]);
+  this.io.on(ev, this['_'+ev] = bind(this, fn));
   return this;
 };
 

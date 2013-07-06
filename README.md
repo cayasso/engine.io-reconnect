@@ -1,76 +1,43 @@
 # Engine.IO Reconnect
 
-[![Build Status](https://travis-ci.org/cayasso/engine.io-rooms.png?branch=master)](https://travis-ci.org/cayasso/engine.io-rooms)
-[![NPM version](https://badge.fury.io/js/engine.io-rooms.png)](http://badge.fury.io/js/engine.io-rooms)
+[![Build Status](https://travis-ci.org/cayasso/engine.io-reconnect.png?branch=master)](https://travis-ci.org/cayasso/engine.io-reconnect)
+[![NPM version](https://badge.fury.io/js/engine.io-reconnect.png)](http://badge.fury.io/js/engine.io-reconnect)
 
-Low level Node.JS module that adds room capabilities to an Engine.IO server.
+Simple reconnect wrapper for engine.io-client.
 
 ## Instalation
 
 ```
-npm install engine.io-rooms
+npm install engine.io-reconnect
 ```
 
 ## Usage
 
-### On the Server
-
-```
-var rooms = require('engine.io-rooms');
-var engine = require('engine.io');
-var server = require('http').createServer();
-var io = engine(server);
-
-// add rooms to eio
-io = rooms(io);
-
-io.on('connection', function (socket) {
-
-  // joining room1 & room2
-  socket.join('room1');
-  socket.join('room2');
-  socket.join('room3');
-
-  // leaving room room2
-  socket.leave('room2');
-
-  // get rooms I am connected to
-  var myRooms = socket.rooms();
-  console.log(myRooms); // ['room1', 'room3']
-
-  // send data to room1
-  socket.room('room1');
-
-  // send data to room1 & room3
-  socket.room('room1 room3');
-
-  // get clients connected to room1
-  socket.room('room1').clients(function(clients) {
-    console.log(clients); // output array of socket ids
-  });
-
-  // leaving all rooms
-  socket.leaveAll();
-
-  // join rooms on request
-  socket.on('message', function(room) {
-    socket.join(room);
-  });
-
-});
-
-server.listen(8080);
-```
-
 ### On the Client
 
 ```
-var socket = eio('ws://localhost');
-socket.onopen = function(){
+var reconnect = require('engine.io-reconnect');
+var client = require('engine.io-client');
 
-  // Join the news room
-  socket.send('news');
-};
+// Add room functionality to io
+var eio = client('ws://localhost:8080');
+var io = reconnect(eio);
+
+io.on('reconnect', function(attempts) {
+  console.log('Reconnected after %d attempts', attempts);
+});
+
+io.on('reconnecting', function(attempts) {
+  console.log('Trying to reconnect after %d attempts', attempts);
+});
+
+io.on('reconnect_error', function(error) {
+  console.log('Error trying to reconnect', error);
+});
+
+io.on('reconnect_timeout', function(timeout) {
+  console.log('Timeout after %dms', timeout);
+});
 
 ```
 

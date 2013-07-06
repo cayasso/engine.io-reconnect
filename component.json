@@ -1,6 +1,7 @@
 {
   "name": "engine.io-reconnect",
   "version": "0.1.0",
+  "description": "Simple reconnect wrapper for engine.io-client",
   "dependencies": {
     "component/bind": "*",
     "visionmedia/debug": "*"
