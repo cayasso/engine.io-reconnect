@@ -19,7 +19,7 @@ npm install engine.io-reconnect
 var reconnect = require('engine.io-reconnect');
 var client = require('engine.io-client');
 
-// Add room functionality to io
+// Add reconnect functionality to eio
 var eio = client('ws://localhost:8080');
 var io = reconnect(eio);
 
