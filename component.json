@@ -1,0 +1,13 @@
+{
+  "name": "engine.io-reconnect",
+  "version": "0.1.0",
+  "dependencies": {
+    "component/bind": "*",
+    "visionmedia/debug": "*"
+  },
+  "main": "index.js",
+  "scripts": [
+    "lib/index.js",
+    "index.js"
+  ]
+}

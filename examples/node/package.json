@@ -1,0 +1,9 @@
+{
+  "name": "engine.io-reconnect-test",
+  "version": "0.1.0",
+  "license": "MIT",
+  "dependencies": {
+    "engine.io": "0.6.x",
+    "engine.io-client": "0.6.x"
+  }
+}
