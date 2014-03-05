@@ -652,6 +652,7 @@ Reconnect.prototype.reconnect = function (){
 
 Reconnect.prototype.onreconnect = function () {
   var attempt = this.attempt;
+  this.clear();
   this.attempt = 0;
   this.reconnecting = false;
   this.connected = true;
