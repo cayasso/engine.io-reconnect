@@ -16,7 +16,7 @@ describe('engine.io-reconnect', function () {
 
   it('should have required methods', function(done){
     var srv = http();
-    var io = eio(srv);
+    var io = eio.attach(srv);
     srv.listen(function(){
       var ioc = client(srv);
       expect(ioc.reconnect).to.be.a('function');
@@ -34,7 +34,7 @@ describe('engine.io-reconnect', function () {
     var reconnect = false;
     var opened = 0;
     var srv = http();
-    var io = eio(srv);
+    var io = eio.attach(srv);
     
     srv.listen(8081, function(){
       io.on('connection', function(conn){
@@ -57,7 +57,7 @@ describe('engine.io-reconnect', function () {
 
   it('should not reconnect on intentional close', function(done){
     var srv = http();
-    var io = eio(srv);
+    var io = eio.attach(srv);
     srv.listen(function(){
       var ioc = client(srv);
       ioc.on('close', function(){

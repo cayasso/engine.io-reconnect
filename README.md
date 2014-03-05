@@ -41,6 +41,8 @@ io.on('reconnect_timeout', function(timeout) {
 
 ```
 
+##
+
 ## Run tests
 
 ```

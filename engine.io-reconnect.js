@@ -27,10 +27,14 @@ function require(path, parent, orig) {
   // perform real require()
   // by invoking the module's
   // registered function
-  if (!module.exports) {
-    module.exports = {};
-    module.client = module.component = true;
-    module.call(this, module.exports, require.relative(resolved), module);
+  if (!module._resolving && !module.exports) {
+    var mod = {};
+    mod.exports = {};
+    mod.client = mod.component = true;
+    module._resolving = true;
+    module.call(this, mod.exports, require.relative(resolved), mod);
+    delete module._resolving;
+    module.exports = mod.exports;
   }
 
   return module.exports;
@@ -223,14 +227,6 @@ module.exports = function(obj, fn){
 };
 
 });
-require.register("visionmedia-debug/index.js", function(exports, require, module){
-if ('undefined' == typeof window) {
-  module.exports = require('./lib/debug');
-} else {
-  module.exports = require('./debug');
-}
-
-});
 require.register("visionmedia-debug/debug.js", function(exports, require, module){
 
 /**
@@ -366,7 +362,9 @@ function coerce(val) {
 
 // persist
 
-if (window.localStorage) debug.enable(localStorage.debug);
+try {
+  if (window.localStorage) debug.enable(localStorage.debug);
+} catch(e){}
 
 });
 require.register("engine.io-reconnect/lib/index.js", function(exports, require, module){
@@ -377,12 +375,7 @@ require.register("engine.io-reconnect/lib/index.js", function(exports, require, 
 var debug = require('debug')('engine.io-reconnect');
 
 // Get bind component for node and browser.
-var bind;
-try {
-  bind = require('bind');
-} catch(e){
-  bind = require('bind-component');
-}
+var bind = require('bind');
 
 /**
  * Module exports.
@@ -682,19 +675,21 @@ Reconnect.prototype.on = function (ev, fn) {
 require.register("engine.io-reconnect/index.js", function(exports, require, module){
 module.exports = require('./lib');
 });
+
+
+
+
 require.alias("component-bind/index.js", "engine.io-reconnect/deps/bind/index.js");
 require.alias("component-bind/index.js", "bind/index.js");
 
-require.alias("visionmedia-debug/index.js", "engine.io-reconnect/deps/debug/index.js");
 require.alias("visionmedia-debug/debug.js", "engine.io-reconnect/deps/debug/debug.js");
-require.alias("visionmedia-debug/index.js", "debug/index.js");
-
-require.alias("engine.io-reconnect/index.js", "engine.io-reconnect/index.js");
-
-if (typeof exports == "object") {
+require.alias("visionmedia-debug/debug.js", "engine.io-reconnect/deps/debug/index.js");
+require.alias("visionmedia-debug/debug.js", "debug/index.js");
+require.alias("visionmedia-debug/debug.js", "visionmedia-debug/index.js");
+require.alias("engine.io-reconnect/index.js", "engine.io-reconnect/index.js");if (typeof exports == "object") {
   module.exports = require("engine.io-reconnect");
 } else if (typeof define == "function" && define.amd) {
-  define(function(){ return require("engine.io-reconnect"); });
+  define([], function(){ return require("engine.io-reconnect"); });
 } else {
   this["eioReconnect"] = require("engine.io-reconnect");
 }})();

@@ -21,14 +21,14 @@
     "websocket"
   ],
   "dependencies": {
-    "bind-component": "*",
+    "bind": "http://github.com/component/bind/archive/0.0.1.tar.gz",
     "debug": "*"
   },
   "devDependencies": {
     "mocha": "*",
     "expect.js": "*",
-    "engine.io": "0.6.x",
-    "engine.io-client": "0.6.x"
+    "engine.io": ">=0.6.x",
+    "engine.io-client": ">=0.6.x"
   },
   "license": "MIT"
 }

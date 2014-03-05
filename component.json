@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Simple reconnect wrapper for engine.io-client",
   "dependencies": {
-    "component/bind": "*",
+    "component/bind": "0.0.1",
     "visionmedia/debug": "*"
   },
   "main": "index.js",
