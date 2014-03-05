@@ -467,7 +467,6 @@ Reconnect.prototype.close = function () {
  */
 
 Reconnect.prototype.onclose = function (reason, desc) {
-  //this.check();
   this.connected = false;
   if (!this.skip && this._reconnection) {
     this.reconnect();
@@ -598,20 +597,6 @@ Reconnect.prototype.open = function(fn) {
     }), this._timeout);
   }
 };
-
-/*Reconnect.prototype.check = function check() {
-  console.log('ATTEMPTS', this.times);
-  this.times++;
-  if (this.times >= 10) {
-    console.log('======== WARNING WARNING STOP STOP PLEASE=========');
-    this.checkTimer = setTimeout(bind(this, function(){
-      this.close();
-      this.clear();
-      this.connected = false;
-      this.times = 0;
-    }), 0);
-  }
-};*/
 
 /**
  * Attempt a reconnection.
